@@ -1,7 +1,7 @@
 <!-- Footer -->
 <footer class="bg-dark text-white py-4 mt-auto border-top border-warning border-3">
     <div class="container text-center">
-        <p class="mb-0">&copy; <?= date('Y') ?> TB. Sakura Jaya. All Rights Reserved.</p>
+        <p class="mb-0">&copy; <?= date('Y') ?> Pejuang Berkah. All Rights Reserved.</p>
     </div>
 </footer>
 

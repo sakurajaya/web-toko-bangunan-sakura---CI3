@@ -9,6 +9,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <style>
         body {
             font-size: .875rem;
@@ -64,9 +68,17 @@
                 <div class="position-sticky pt-3 sidebar-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="<?= base_url('admin/categories') ?>">
+                            <a class="nav-link <?= ($this->uri->segment(2) == 'categories') ? 'active' : '' ?>"
+                                aria-current="page" href="<?= base_url('admin/categories') ?>">
                                 <i class="fas fa-layer-group me-2"></i>
                                 Kategori
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($this->uri->segment(2) == 'products') ? 'active' : '' ?>"
+                                href="<?= base_url('admin/products') ?>">
+                                <i class="fas fa-box me-2"></i>
+                                Produk
                             </a>
                         </li>
                         <li class="nav-item">
