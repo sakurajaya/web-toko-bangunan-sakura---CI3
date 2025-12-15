@@ -17,6 +17,7 @@
                 <th scope="col">#</th>
                 <th scope="col">Kode</th>
                 <th scope="col">Status Barang</th>
+                <th scope="col">New?</th>
                 <th scope="col">Gambar</th>
                 <th scope="col">Nama Produk</th>
                 <th scope="col">Kategori</th>
@@ -125,6 +126,16 @@
                 { "data": null, "render": function (data, type, row, meta) { return meta.row + 1; } },
                 { "data": "kode_product", "defaultContent": "-" },
                 { "data": "status_barang", "defaultContent": "-" },
+                {
+                    "data": "is_new_arrival",
+                    "render": function (data, type, row) {
+                        let btnClass = data == 1 ? 'btn-warning' : 'btn-outline-secondary';
+                        let icon = data == 1 ? 'fas fa-star' : 'far fa-star';
+                        return `<button class="btn ${btnClass} btn-sm" onclick="toggleNewArrival(${row.id})" title="Toggle New Arrival">
+                                    <i class="${icon}"></i>
+                                </button>`;
+                    }
+                },
                 {
                     "data": "image",
                     "render": function (data) {
@@ -290,5 +301,23 @@
         setTimeout(() => {
             $('.alert').alert('close');
         }, 3000);
+    }
+
+    function toggleNewArrival(id) {
+        $.ajax({
+            url: API_URL + 'toggle_new_arrival/' + id,
+            type: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    table.ajax.reload(null, false);
+                } else {
+                    showAlert('danger', 'Gagal mengupdate status: ' + response.message);
+                }
+            },
+            error: function() {
+                showAlert('danger', 'Terjadi kesalahan server');
+            }
+        });
     }
 </script>

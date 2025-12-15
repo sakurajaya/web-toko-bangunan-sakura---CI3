@@ -8,6 +8,90 @@
     </div>
 </section>
 
+</section>
+
+<!-- New Arrivals Section -->
+<?php if (!empty($new_arrivals)): ?>
+    <section id="new-arrivals" class="section-padding bg-light">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our New Arrival</h2>
+                <div class="section-title-line"></div>
+                <p class="text-muted mt-2">Produk terbaru pilihan kami untuk Anda</p>
+            </div>
+
+            <!-- Swiper Container -->
+            <div class="swiper newArrivalsSwiper">
+                <div class="swiper-wrapper">
+                    <?php foreach ($new_arrivals as $item): ?>
+                        <?php
+                        $imgUrl = !empty($item->image) ? base_url($item->image) : 'https://placehold.co/300x200?text=No+Image';
+                        $price = number_format($item->price, 0, ',', '.');
+                        $desc = strlen($item->description) > 60 ? substr($item->description, 0, 60) . '...' : $item->description;
+                        ?>
+                        <div class="swiper-slide h-auto">
+                            <div class="card h-100 shadow-sm border-0 hover-shadow transition">
+                                <div class="position-relative" style="height: 250px; overflow: hidden;">
+                                    <img src="<?= $imgUrl ?>" class="card-img-top w-100 h-100 object-fit-cover"
+                                        alt="<?= $item->name ?>">
+                                    <div class="position-absolute top-0 end-0 m-3">
+                                        <span class="badge bg-warning text-dark">New</span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold text-dark mb-2"><?= $item->name ?></h5>
+                                    <h6 class="text-warning fw-bold mb-3">Rp <?= $price ?></h6>
+                                    <div class="d-grid">
+                                        <a href="https://wa.me/6285608679124?text=Halo,%20saya%20tertarik%20dengan%20produk%20baru%20ini:%20<?= urlencode($item->name) ?>"
+                                            target="_blank" class="btn btn-outline-warning btn-sm">
+                                            <i class="fab fa-whatsapp me-2"></i>Pesan
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <!-- Add Pagination -->
+                <div class="swiper-pagination mt-4"></div>
+            </div>
+
+            <!-- Swiper Init -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const swiper = new Swiper(".newArrivalsSwiper", {
+                        slidesPerView: 1,
+                        spaceBetween: 20,
+                        loop: true,
+                        autoplay: {
+                            delay: 3000,
+                            disableOnInteraction: false,
+                        },
+                        pagination: {
+                            el: ".swiper-pagination",
+                            clickable: true,
+                        },
+                        breakpoints: {
+                            640: {
+                                slidesPerView: 2,
+                                spaceBetween: 20,
+                            },
+                            768: {
+                                slidesPerView: 3,
+                                spaceBetween: 30,
+                            },
+                            1024: {
+                                slidesPerView: 4,
+                                spaceBetween: 30,
+                            },
+                        },
+                    });
+                });
+            </script>
+        </div>
+    </section>
+<?php endif; ?>
+
 <!-- About Section -->
 <section id="about" class="section-padding">
     <div class="container">

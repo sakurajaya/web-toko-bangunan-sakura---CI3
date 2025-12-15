@@ -195,6 +195,24 @@ class Products extends CI_Controller
         }
     }
 
+    public function toggle_new_arrival($id)
+    {
+        if (!$this->input->is_ajax_request()) {
+            show_404();
+        }
+
+        $new_status = $this->Product_model->toggle_new_arrival($id);
+        if ($new_status !== false) {
+            echo json_encode([
+                'status' => true,
+                'message' => 'Product status updated',
+                'is_new_arrival' => $new_status
+            ]);
+        } else {
+            echo json_encode(['status' => false, 'message' => 'Failed to update status']);
+        }
+    }
+
     public function migrate_db()
     {
         $this->load->dbforge();

@@ -84,6 +84,46 @@ class Product_model extends CI_Model
         return $this->db->trans_status();
     }
 
+    public function get_new_arrivals($limit = 8)
+    {
+        $this->db->select('products.*, GROUP_CONCAT(categories.name SEPARATOR ", ") as category_name');
+        $this->db->from('products');
+        $this->db->join('product_categories', 'product_categories.product_id = products.id', 'left');
+        $this->db->join('categories', 'categories.id = product_categories.category_id', 'left');
+        $this->db->where('products.is_new_arrival', 1);
+        $this->db->where('products.status_barang', 1);
+        $this->db->group_by('products.id');
+        $this->db->order_by('products.created_at', 'DESC');
+        $this->db->limit($limit);
+        return $this->db->get()->result();
+    }
+
+    public function get_random_new_arrivals($limit = 10)
+    {
+        $this->db->select('products.*, GROUP_CONCAT(categories.name SEPARATOR ", ") as category_name');
+        $this->db->from('products');
+        $this->db->join('product_categories', 'product_categories.product_id = products.id', 'left');
+        $this->db->join('categories', 'categories.id = product_categories.category_id', 'left');
+        $this->db->where('products.is_new_arrival', 1);
+        $this->db->where('products.status_barang', 1);
+        $this->db->group_by('products.id');
+        $this->db->order_by('RAND()');
+        $this->db->limit($limit);
+        return $this->db->get()->result();
+    }
+
+    public function toggle_new_arrival($id)
+    {
+        $product = $this->get_by_id($id);
+        if ($product) {
+            $new_status = ($product->is_new_arrival == 1) ? 0 : 1;
+            $this->db->where('id', $id);
+            $this->db->update('products', ['is_new_arrival' => $new_status]);
+            return $new_status;
+        }
+        return false;
+    }
+
     public function delete($id)
     {
         // Foreign keys with CASCADE should handle pivot table cleanup, 
