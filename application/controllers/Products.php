@@ -38,31 +38,62 @@ class Products extends CI_Controller
         $category_id = $this->input->get('category');
         $search_query = $this->input->get('q');
 
-        $this->db->select('*');
-        $this->db->from('products');
-        $this->db->where('status_barang', 1);
+        // Pagination Params
+        $page = $this->input->get('page');
+        $page = (is_numeric($page) && $page > 0) ? (int) $page : 1;
+        $per_page = 12; // default limit
+        $offset = ($page - 1) * $per_page;
 
-        if (!empty($category_id)) {
-            $this->db->where('category_id', $category_id);
-        }
+        // 1. Count Total Rows
+        $this->_apply_filters($category_id, $search_query);
+        $total_rows = $this->db->count_all_results(); // Note: count_all_results resets query builder
 
-        if (!empty($search_query)) {
-            $this->db->group_start();
-            $this->db->like('name', $search_query);
-            
-            $this->db->or_like('description', $search_query);
-            $this->db->or_like('kode_product', $search_query); // Add search by code
-            $this->db->group_end();
-        }
-
+        // 2. Fetch Data
         $products = [];
-        if ($this->db->table_exists('products')) {
+        if ($total_rows > 0) {
+            $this->_apply_filters($category_id, $search_query);
+            $this->db->limit($per_page, $offset);
             $products = $this->db->get()->result();
         }
+
+        // Pagination Metadata
+        $total_pages = ceil($total_rows / $per_page);
 
         // Return JSON
         $this->output
             ->set_content_type('application/json')
-            ->set_output(json_encode(['data' => $products]));
+            ->set_output(json_encode([
+                'data' => $products,
+                'pagination' => [
+                    'current_page' => $page,
+                    'total_pages' => $total_pages,
+                    'total_rows' => $total_rows,
+                    'per_page' => $per_page
+                ]
+            ]));
+    }
+
+    private function _apply_filters($category_id, $search_query)
+    {
+        $this->db->select('products.*, GROUP_CONCAT(categories.name SEPARATOR ", ") as category_name'); // Select columns explicitly if needed
+        $this->db->from('products');
+        $this->db->join('product_categories', 'product_categories.product_id = products.id', 'left');
+        $this->db->join('categories', 'categories.id = product_categories.category_id', 'left');
+        $this->db->where('products.status_barang', 1);
+
+        if (!empty($category_id)) {
+            $this->db->where('product_categories.category_id', $category_id);
+        }
+
+        if (!empty($search_query)) {
+            $this->db->group_start();
+            $this->db->like('products.name', $search_query);
+            $this->db->or_like('products.description', $search_query);
+            $this->db->or_like('products.kode_product', $search_query);
+            $this->db->group_end();
+        }
+
+        $this->db->group_by('products.id');
+        $this->db->order_by('products.created_at', 'DESC');
     }
 }

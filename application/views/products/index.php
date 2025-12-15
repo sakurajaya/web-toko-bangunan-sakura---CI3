@@ -56,8 +56,13 @@
                     <!-- Products will be injected here via JS -->
                 </div>
 
+                <!-- Pagination Container -->
+                <div id="paginationContainer" class="d-flex justify-content-center mt-5">
+                    <!-- Pagination links injected via JS -->
+                </div>
+
                 <!-- Loading Spinner -->
-                <div id="loadingSpinner" class="text-center py-5">
+                <div id="loadingSpinner" class="text-center py-5 d-none">
                     <div class="spinner-border text-warning" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -92,23 +97,25 @@
     document.addEventListener('DOMContentLoaded', function () {
         let currentCategory = '<?= isset($initial_category) ? $initial_category : "" ?>';
         let currentSearch = '<?= isset($initial_search) ? $initial_search : "" ?>';
+        let currentPage = 1;
 
         // Initial Load
-        fetchProducts(currentCategory, currentSearch);
+        fetchProducts(currentCategory, currentSearch, currentPage);
 
         // Search Handler
         document.getElementById('searchForm').addEventListener('submit', function (e) {
             e.preventDefault();
             currentSearch = document.getElementById('searchInput').value;
-            currentCategory = ''; // Reset category on new search? Or keep it? Usually reset or keep. Let's keep strict search.
+            currentCategory = '';
+            currentPage = 1;
 
-            // Update UI for Categories (Reset active)
+            // Update UI for Categories
             document.querySelectorAll('.category-link').forEach(l => {
                 l.classList.remove('active', 'bg-warning', 'border-warning', 'text-dark');
                 if (l.dataset.id === '') l.classList.add('active', 'bg-warning', 'border-warning', 'text-dark');
             });
 
-            fetchProducts('', currentSearch);
+            fetchProducts('', currentSearch, currentPage);
         });
 
         // Category Click Handler
@@ -122,22 +129,23 @@
 
                 // Logic
                 currentCategory = this.dataset.id;
-                currentSearch = ''; // Clear search when clicking category
+                currentSearch = '';
+                currentPage = 1;
                 document.getElementById('searchInput').value = '';
 
-                fetchProducts(currentCategory, '');
+                fetchProducts(currentCategory, '', currentPage);
             });
         });
     });
 
     function resetFilters() {
         document.getElementById('searchInput').value = '';
-        // Click "All Categories"
         document.querySelector('.category-link[data-id=""]').click();
     }
 
-    function fetchProducts(category, search) {
+    function fetchProducts(category, search, page = 1) {
         const grid = document.getElementById('productGrid');
+        const paginationContainer = document.getElementById('paginationContainer');
         const spinner = document.getElementById('loadingSpinner');
         const noResults = document.getElementById('noResults');
         const searchInfo = document.getElementById('searchInfo');
@@ -145,6 +153,7 @@
 
         // Show Loader
         grid.innerHTML = '';
+        paginationContainer.innerHTML = '';
         spinner.classList.remove('d-none');
         noResults.classList.add('d-none');
 
@@ -160,10 +169,11 @@
         const url = new URL(window.location);
         if (category) url.searchParams.set('category', category); else url.searchParams.delete('category');
         if (search) url.searchParams.set('q', search); else url.searchParams.delete('q');
+        if (page > 1) url.searchParams.set('page', page); else url.searchParams.delete('page');
         window.history.pushState({}, '', url);
 
         // API Call
-        const apiUrl = `<?= base_url('products/get_json') ?>?category=${category}&q=${search}`;
+        const apiUrl = `<?= base_url('products/get_json') ?>?category=${category}&q=${search}&page=${page}`;
 
         fetch(apiUrl)
             .then(response => response.json())
@@ -172,6 +182,7 @@
 
                 if (data.data.length > 0) {
                     renderProducts(data.data);
+                    renderPagination(data.pagination, category, search);
                 } else {
                     noResults.classList.remove('d-none');
                 }
@@ -187,19 +198,15 @@
         let html = '';
 
         products.forEach(product => {
-            // Safe check for image
             let imgUrl = product.image ? product.image : 'https://placehold.co/300x200?text=No+Image';
-            // Check if full url or needs base_url (simple check)
             if (!imgUrl.startsWith('http')) {
                 imgUrl = '<?= base_url() ?>' + imgUrl;
             }
 
-            // Format Price
             const price = new Intl.NumberFormat('id-ID').format(product.price);
-
-            // Truncate Description (Safe check)
             const description = product.description || '';
             const desc = description.length > 60 ? description.substring(0, 60) + '...' : description;
+            const categoryName = product.category_name ? `<span class="badge bg-secondary mb-2">${product.category_name}</span>` : '';
 
             html += `
         <div class="col-md-4 col-sm-6">
@@ -210,6 +217,7 @@
                          alt="${product.name}">
                 </div>
                 <div class="card-body">
+                    ${categoryName}
                     <h5 class="card-title fw-bold text-dark mb-2">${product.name}</h5>
                     <h8 class="fw-bold text-dark mb-2">${product.kode_product}</h5>
                     <h6 class="text-warning fw-bold mb-3">Rp ${price}</h6>
@@ -230,5 +238,57 @@
         });
 
         grid.innerHTML = html;
+    }
+
+    function renderPagination(pagination, category, search) {
+        if (pagination.total_pages <= 1) return;
+
+        const container = document.getElementById('paginationContainer');
+        let html = '<nav aria-label="Page navigation"><ul class="pagination">';
+
+        const currentPage = pagination.current_page;
+        const totalPages = pagination.total_pages;
+
+        // Prev Button
+        html += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage - 1}, '${category}', '${search}'); return false;" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        `;
+
+        // Numbered Buttons (Simple range for now)
+        for (let i = 1; i <= totalPages; i++) {
+            // Show only first, last, and around current page to avoid clutter if many pages
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `
+                    <li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i}, '${category}', '${search}'); return false;">${i}</a>
+                    </li>
+                `;
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+
+        // Next Button
+        html += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${currentPage + 1}, '${category}', '${search}'); return false;" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        `;
+
+        html += '</ul></nav>';
+        container.innerHTML = html;
+    }
+
+    function changePage(page, category, search) {
+        if (page < 1) return;
+        fetchProducts(category, search, page);
+        // Scroll to top of grid
+        document.getElementById('productGrid').scrollIntoView({ behavior: 'smooth' });
     }
 </script>

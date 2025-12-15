@@ -87,7 +87,11 @@ class Products extends CI_Controller
         $this->form_validation->set_rules('kode_product', 'Kode Produk', 'required|is_unique[products.kode_product]');
         $this->form_validation->set_rules('name', 'Name', 'required');
         $this->form_validation->set_rules('price', 'Price', 'numeric|required');
-        $this->form_validation->set_rules('category_id', 'Category', 'required');
+
+        // Manual check for category_ids array
+        if (empty($this->input->post('category_ids'))) {
+            $this->form_validation->set_rules('category_ids[]', 'Category', 'required');
+        }
 
         if ($this->form_validation->run() == FALSE) {
             echo json_encode(['status' => false, 'errors' => validation_errors()]);
@@ -103,14 +107,15 @@ class Products extends CI_Controller
 
         $data = [
             'kode_product' => $this->input->post('kode_product'),
-            'category_id' => $this->input->post('category_id'),
             'name' => $this->input->post('name'),
             'description' => $this->input->post('description'),
             'price' => $this->input->post('price'),
             'image' => $image_path ? $image_path : 'assets/products/default.png'
         ];
 
-        if ($this->Product_model->insert($data)) {
+        $category_ids = $this->input->post('category_ids');
+
+        if ($this->Product_model->insert($data, $category_ids)) {
             echo json_encode(['status' => true, 'message' => 'Product created successfully']);
         } else {
             echo json_encode(['status' => false, 'message' => 'Failed to create product']);
@@ -135,7 +140,10 @@ class Products extends CI_Controller
 
         $this->form_validation->set_rules('name', 'Name', 'required');
         $this->form_validation->set_rules('price', 'Price', 'numeric|required');
-        $this->form_validation->set_rules('category_id', 'Category', 'required');
+
+        if (empty($this->input->post('category_ids'))) {
+            $this->form_validation->set_rules('category_ids[]', 'Category', 'required');
+        }
 
         if ($this->form_validation->run() == FALSE) {
             echo json_encode(['status' => false, 'errors' => validation_errors()]);
@@ -151,7 +159,6 @@ class Products extends CI_Controller
 
         $data = [
             'kode_product' => $this->input->post('kode_product'),
-            'category_id' => $this->input->post('category_id'),
             'name' => $this->input->post('name'),
             'description' => $this->input->post('description'),
             'price' => $this->input->post('price'),
@@ -159,7 +166,9 @@ class Products extends CI_Controller
             'image' => $image_path ? $image_path : $product->image // Keep old image if no new upload
         ];
 
-        if ($this->Product_model->update($id, $data)) {
+        $category_ids = $this->input->post('category_ids');
+
+        if ($this->Product_model->update($id, $data, $category_ids)) {
             echo json_encode(['status' => true, 'message' => 'Product updated successfully']);
         } else {
             echo json_encode(['status' => false, 'message' => 'Failed to update product']);
@@ -201,6 +210,47 @@ class Products extends CI_Controller
             echo "Column kode_product added successfully!";
         } else {
             echo "Failed to add column or it already exists.";
+        }
+    }
+
+    public function migrate_multi_category()
+    {
+        // 1. Create product_categories table
+        $sql = "CREATE TABLE IF NOT EXISTS product_categories (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            product_id INT NOT NULL,
+            category_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        )";
+
+        if ($this->db->query($sql)) {
+            echo "Table product_categories created successfully.<br>";
+        } else {
+            echo "Failed to create table product_categories.<br>";
+            return;
+        }
+
+        // 2. Migrate existing data
+        // Check if data already exists to avoid duplication
+        $count = $this->db->count_all('product_categories');
+        if ($count > 0) {
+            echo "Data migration skipped: product_categories table already has data.<br>";
+        } else {
+            $products = $this->db->get('products')->result();
+            $migrated_count = 0;
+            foreach ($products as $product) {
+                if (!empty($product->category_id)) {
+                    $data = [
+                        'product_id' => $product->id,
+                        'category_id' => $product->category_id
+                    ];
+                    $this->db->insert('product_categories', $data);
+                    $migrated_count++;
+                }
+            }
+            echo "Migrated $migrated_count products to pivot table.<br>";
         }
     }
 }

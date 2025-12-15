@@ -56,13 +56,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="category_id" class="form-label">Kategori</label>
-                        <select class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Pilih Kategori</option>
+                        <label for="category_ids" class="form-label">Kategori</label>
+                        <select class="form-select" id="category_ids" name="category_ids[]" multiple required
+                            style="height: 120px;">
                             <?php foreach ($categories as $cat): ?>
                                 <option value="<?= $cat->id ?>"><?= $cat->name ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <small class="text-muted">Tahan tombol Ctrl (Windows) atau Command (Mac) untuk memilih lebih
+                            dari satu.</small>
                     </div>
 
                     <div class="mb-3">
@@ -78,7 +80,8 @@
                     <div class="mb-3">
                         <label for="image_file" class="form-label">Gambar</label>
                         <div id="imagePreviewContainer" class="mb-2 d-none">
-                            <img id="imagePreview" src="" alt="Preview" class="img-thumbnail" style="max-height: 150px;">
+                            <img id="imagePreview" src="" alt="Preview" class="img-thumbnail"
+                                style="max-height: 150px;">
                         </div>
                         <input type="file" class="form-control" id="image_file" name="image_file" accept="image/*">
                         <small class="text-muted">Biarkan kosong jika tidak ingin mengubah gambar (saat edit).</small>
@@ -88,7 +91,7 @@
                         <select class="form-select" id="status_barang" name="status_barang" required>
                             <option value="1">Active</option>
                             <option value="0">Not Active</option>
-                            
+
                         </select>
                     </div>
                 </div>
@@ -119,27 +122,27 @@
                 "dataSrc": ""
             },
             "columns": [
-                { "data": null, "render": function(data, type, row, meta) { return meta.row + 1; } },
+                { "data": null, "render": function (data, type, row, meta) { return meta.row + 1; } },
                 { "data": "kode_product", "defaultContent": "-" },
                 { "data": "status_barang", "defaultContent": "-" },
-                { 
+                {
                     "data": "image",
-                    "render": function(data) {
+                    "render": function (data) {
                         return data ? `<img src="<?= base_url() ?>${data}" height="50" class="rounded">` : '-';
                     }
                 },
                 { "data": "name" },
                 { "data": "category_name", "defaultContent": "-" },
-                { 
-                    "data": "price", 
-                    "render": function(data) {
+                {
+                    "data": "price",
+                    "render": function (data) {
                         return 'Rp ' + new Intl.NumberFormat('id-ID').format(data);
                     }
                 },
                 {
                     "data": "id",
                     "className": "text-end",
-                    "render": function(data) {
+                    "render": function (data) {
                         return `
                             <button class="btn btn-sm btn-outline-secondary me-1" onclick="editProduct(${data})">
                                 <i class="fas fa-edit"></i>
@@ -162,11 +165,11 @@
         });
 
         // Image Preview Handler
-        $('#image_file').change(function(){
+        $('#image_file').change(function () {
             const file = this.files[0];
-            if (file){
+            if (file) {
                 let reader = new FileReader();
-                reader.onload = function(event){
+                reader.onload = function (event) {
                     $('#imagePreview').attr('src', event.target.result);
                     $('#imagePreviewContainer').removeClass('d-none');
                 }
@@ -180,11 +183,11 @@
         $('#productId').val('');
         $('#productModalLabel').text('Tambah Produk');
         $('#saveBtn').text('Simpan').prop('disabled', false);
-        
+
         // Clear Preview
         $('#imagePreview').attr('src', '');
         $('#imagePreviewContainer').addClass('d-none');
-        
+
         productModal.show();
     }
 
@@ -199,13 +202,13 @@
                     $('#productId').val(data.id);
                     $('#kode_product').val(data.kode_product);
                     $('#name').val(data.name);
-                    $('#category_id').val(data.category_id);
+                    $('#category_ids').val(data.category_ids);
                     $('#price').val(data.price);
                     $('#description').val(data.description);
                     $('#status_id').val(data.status_id);
 
                     // Handle Image Preview
-                    if(data.image) {
+                    if (data.image) {
                         let imgUrl = data.image.startsWith('http') ? data.image : '<?= base_url() ?>' + data.image;
                         $('#imagePreview').attr('src', imgUrl);
                         $('#imagePreviewContainer').removeClass('d-none');
@@ -226,7 +229,7 @@
         let id = $('#productId').val();
         let url = id ? API_URL + 'update/' + id : API_URL + 'store';
         let formData = new FormData(document.getElementById('productForm'));
-        
+
         // Loading State
         let btn = $('#saveBtn');
         let originalText = btn.text();
@@ -251,7 +254,7 @@
             error: function () {
                 showAlert('danger', 'Terjadi kesalahan sistem.');
             },
-            complete: function() {
+            complete: function () {
                 btn.text(originalText).prop('disabled', false);
             }
         });

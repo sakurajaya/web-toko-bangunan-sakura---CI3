@@ -12,32 +12,87 @@ class Product_model extends CI_Model
 
     public function get_all()
     {
-        $this->db->select('products.*, categories.name as category_name');
+        $this->db->select('products.*, GROUP_CONCAT(categories.name SEPARATOR ", ") as category_name, GROUP_CONCAT(categories.id) as category_ids');
         $this->db->from('products');
-        $this->db->join('categories', 'categories.id = products.category_id', 'left');
+        $this->db->join('product_categories', 'product_categories.product_id = products.id', 'left');
+        $this->db->join('categories', 'categories.id = product_categories.category_id', 'left');
+        $this->db->group_by('products.id');
         $this->db->order_by('products.created_at', 'DESC');
         return $this->db->get()->result();
     }
 
     public function get_by_id($id)
     {
-        return $this->db->get_where('products', ['id' => $id])->row();
+        $product = $this->db->get_where('products', ['id' => $id])->row();
+        if ($product) {
+            $product->categories = $this->db->select('category_id')
+                ->from('product_categories')
+                ->where('product_id', $id)
+                ->get()
+                ->result_array();
+            $product->category_ids = array_column($product->categories, 'category_id');
+        }
+        return $product;
     }
 
-    public function insert($data)
+    public function insert($data, $categories = [])
     {
-        return $this->db->insert('products', $data);
+        $this->db->trans_start();
+        $this->db->insert('products', $data);
+        $product_id = $this->db->insert_id();
+
+        if (!empty($categories)) {
+            $batch_data = [];
+            foreach ($categories as $cat_id) {
+                $batch_data[] = [
+                    'product_id' => $product_id,
+                    'category_id' => $cat_id
+                ];
+            }
+            if (!empty($batch_data)) {
+                $this->db->insert_batch('product_categories', $batch_data);
+            }
+        }
+        $this->db->trans_complete();
+        return $this->db->trans_status();
     }
 
-    public function update($id, $data)
+    public function update($id, $data, $categories = [])
     {
+        $this->db->trans_start();
         $this->db->where('id', $id);
-        return $this->db->update('products', $data);
+        $this->db->update('products', $data);
+
+        // Update categories if provided
+        if ($categories !== null) {
+            $this->db->delete('product_categories', ['product_id' => $id]);
+
+            if (!empty($categories)) {
+                $batch_data = [];
+                foreach ($categories as $cat_id) {
+                    $batch_data[] = [
+                        'product_id' => $id,
+                        'category_id' => $cat_id
+                    ];
+                }
+                if (!empty($batch_data)) {
+                    $this->db->insert_batch('product_categories', $batch_data);
+                }
+            }
+        }
+        $this->db->trans_complete();
+        return $this->db->trans_status();
     }
 
     public function delete($id)
     {
+        // Foreign keys with CASCADE should handle pivot table cleanup, 
+        // but explicit transaction is safer if FKs are not strict
+        $this->db->trans_start();
+        $this->db->delete('product_categories', ['product_id' => $id]);
         $this->db->where('id', $id);
-        return $this->db->delete('products');
+        $this->db->delete('products');
+        $this->db->trans_complete();
+        return $this->db->trans_status();
     }
 }
