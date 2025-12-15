@@ -211,15 +211,17 @@
             <?php if (!empty($gallery)): ?>
                 <?php foreach ($gallery as $item): ?>
                     <div class="col-md-3 col-6">
-                        <div class="position-relative overflow-hidden rounded shadow-sm group-hover-zoom"
-                            style="height: 250px;">
-                            <img src="<?= base_url($item->image) ?>" alt="<?= $item->title ?>"
-                                class="w-100 h-100 object-fit-cover">
-                            <div
-                                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-75 opacity-0 hover-opacity-100 transition-opacity">
-                                <span class="fw-bold text-dark"><?= $item->title ?></span>
+                        <a href="<?= base_url($item->image) ?>" data-fancybox="gallery" data-caption="<?= $item->title ?>">
+                            <div class="position-relative overflow-hidden rounded shadow-sm group-hover-zoom"
+                                style="height: 250px;">
+                                <img src="<?= base_url($item->image) ?>" alt="<?= $item->title ?>"
+                                    class="w-100 h-100 object-fit-cover">
+                                <div
+                                    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-75 opacity-0 hover-opacity-100 transition-opacity">
+                                    <span class="fw-bold text-dark"><?= $item->title ?></span>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
@@ -228,6 +230,16 @@
                 </div>
             <?php endif; ?>
         </div>
+        
+        <!-- Fancybox Init -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Fancybox.bind("[data-fancybox]", {
+                    // Custom options
+                });
+            });
+        </script>
+
 
         <!-- Interactive styling for gallery hover -->
         <style>

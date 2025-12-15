@@ -1,9 +1,8 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Kelola Produk</h1>
+    <h1 class="h2">Kelola Galeri</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#productModal"
-            onclick="openAddModal()">
-            <i class="fas fa-plus"></i> Tambah Produk
+        <button type="button" class="btn btn-sm btn-primary" onclick="openAddModal()">
+            <i class="fas fa-plus"></i> Tambah Foto
         </button>
     </div>
 </div>
@@ -11,66 +10,37 @@
 <div id="alert-container"></div>
 
 <div class="table-responsive bg-white rounded shadow-sm">
-    <table class="table table-striped table-hover mb-0" id="productsTable">
+    <table class="table table-striped table-hover mb-0" id="galleryTable">
         <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col">Kode</th>
-                <th scope="col">Status Barang</th>
-                <th scope="col">New?</th>
-                <th scope="col">Gambar</th>
-                <th scope="col">Nama Produk</th>
-                <th scope="col">Kategori</th>
-                <th scope="col">Harga</th>
-                <th scope="col" class="text-end">Aksi</th>
+                <th scope="col" width="5%">#</th>
+                <th scope="col" width="20%">Gambar</th>
+                <th scope="col" width="25%">Judul</th>
+                <th scope="col" width="35%">Deskripsi</th>
+                <th scope="col" width="15%" class="text-end">Aksi</th>
             </tr>
         </thead>
-        <tbody id="productsTableBody">
-            <!-- Data will be loaded here via AJAX -->
-            <tr>
-                <td colspan="6" class="text-center py-4">Memuat data...</td>
-            </tr>
+        <tbody>
+            <!-- Data loaded via AJAX -->
         </tbody>
     </table>
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+<div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="productForm" enctype="multipart/form-data">
+            <form id="galleryForm" enctype="multipart/form-data">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="productModalLabel">Tambah Produk</h5>
+                    <h5 class="modal-title" id="galleryModalLabel">Tambah Foto</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="productId" name="id">
+                    <input type="hidden" id="itemId" name="id">
 
                     <div class="mb-3">
-                        <label for="kode_product" class="form-label">Kode Produk</label>
-                        <input type="text" class="form-control" id="kode_product" name="kode_product" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nama Produk</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="category_ids" class="form-label">Kategori</label>
-                        <select class="form-select" id="category_ids" name="category_ids[]" multiple required
-                            style="height: 120px;">
-                            <?php foreach ($categories as $cat): ?>
-                                <option value="<?= $cat->id ?>"><?= $cat->name ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <small class="text-muted">Tahan tombol Ctrl (Windows) atau Command (Mac) untuk memilih lebih
-                            dari satu.</small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="price" class="form-label">Harga (IDR)</label>
-                        <input type="number" class="form-control" id="price" name="price" required>
+                        <label for="title" class="form-label">Judul</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
                     </div>
 
                     <div class="mb-3">
@@ -87,14 +57,6 @@
                         <input type="file" class="form-control" id="image_file" name="image_file" accept="image/*">
                         <small class="text-muted">Biarkan kosong jika tidak ingin mengubah gambar (saat edit).</small>
                     </div>
-                    <div class="mb-3">
-                        <label for="status_barang" class="form-label">Status</label>
-                        <select class="form-select" id="status_barang" name="status_barang" required>
-                            <option value="1">Active</option>
-                            <option value="0">Not Active</option>
-
-                        </select>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -106,59 +68,37 @@
 </div>
 
 <script>
-    const API_URL = '<?= base_url("admin/products/") ?>';
-    let productModal;
+    const API_URL = '<?= base_url("admin/gallery/") ?>';
+    let galleryModal;
     let table;
 
     $(document).ready(function () {
-        // Initialize Modal
-        productModal = new bootstrap.Modal(document.getElementById('productModal'), {
-            keyboard: false
-        });
+        galleryModal = new bootstrap.Modal(document.getElementById('galleryModal'));
 
-        // Initialize DataTable
-        table = $('#productsTable').DataTable({
+        table = $('#galleryTable').DataTable({
             "ajax": {
                 "url": API_URL + 'get_json',
                 "dataSrc": ""
             },
             "columns": [
                 { "data": null, "render": function (data, type, row, meta) { return meta.row + 1; } },
-                { "data": "kode_product", "defaultContent": "-" },
-                { "data": "status_barang", "defaultContent": "-" },
-                {
-                    "data": "is_new_arrival",
-                    "render": function (data, type, row) {
-                        let btnClass = data == 1 ? 'btn-warning' : 'btn-outline-secondary';
-                        let icon = data == 1 ? 'fas fa-star' : 'far fa-star';
-                        return `<button class="btn ${btnClass} btn-sm" onclick="toggleNewArrival(${row.id})" title="Toggle New Arrival">
-                                    <i class="${icon}"></i>
-                                </button>`;
-                    }
-                },
                 {
                     "data": "image",
                     "render": function (data) {
-                        return data ? `<img src="<?= base_url() ?>${data}" height="50" class="rounded">` : '-';
+                        return data ? `<img src="<?= base_url() ?>${data}" height="60" class="rounded">` : '-';
                     }
                 },
-                { "data": "name" },
-                { "data": "category_name", "defaultContent": "-" },
-                {
-                    "data": "price",
-                    "render": function (data) {
-                        return 'Rp ' + new Intl.NumberFormat('id-ID').format(data);
-                    }
-                },
+                { "data": "title" },
+                { "data": "description", "defaultContent": "-" },
                 {
                     "data": "id",
                     "className": "text-end",
                     "render": function (data) {
                         return `
-                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="editProduct(${data})">
+                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="editItem(${data})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${data})">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${data})">
                                 <i class="fas fa-trash"></i>
                             </button>
                         `;
@@ -184,12 +124,11 @@
             }
         });
 
-        $('#productForm').on('submit', function (e) {
+        $('#galleryForm').on('submit', function (e) {
             e.preventDefault();
-            saveProduct();
+            saveItem();
         });
 
-        // Image Preview Handler
         $('#image_file').change(function () {
             const file = this.files[0];
             if (file) {
@@ -204,19 +143,16 @@
     });
 
     function openAddModal() {
-        $('#productForm')[0].reset();
-        $('#productId').val('');
-        $('#productModalLabel').text('Tambah Produk');
+        $('#galleryForm')[0].reset();
+        $('#itemId').val('');
+        $('#galleryModalLabel').text('Tambah Foto');
         $('#saveBtn').text('Simpan').prop('disabled', false);
-
-        // Clear Preview
         $('#imagePreview').attr('src', '');
         $('#imagePreviewContainer').addClass('d-none');
-
-        productModal.show();
+        galleryModal.show();
     }
 
-    function editProduct(id) {
+    function editItem(id) {
         $.ajax({
             url: API_URL + 'get_item/' + id,
             type: 'GET',
@@ -224,15 +160,10 @@
             success: function (response) {
                 if (response.status) {
                     const data = response.data;
-                    $('#productId').val(data.id);
-                    $('#kode_product').val(data.kode_product);
-                    $('#name').val(data.name);
-                    $('#category_ids').val(data.category_ids);
-                    $('#price').val(data.price);
+                    $('#itemId').val(data.id);
+                    $('#title').val(data.title);
                     $('#description').val(data.description);
-                    $('#status_id').val(data.status_id);
 
-                    // Handle Image Preview
                     if (data.image) {
                         let imgUrl = data.image.startsWith('http') ? data.image : '<?= base_url() ?>' + data.image;
                         $('#imagePreview').attr('src', imgUrl);
@@ -241,23 +172,20 @@
                         $('#imagePreviewContainer').addClass('d-none');
                     }
 
-                    $('#productModalLabel').text('Edit Produk');
+                    $('#galleryModalLabel').text('Edit Foto');
                     $('#saveBtn').text('Update').prop('disabled', false);
-
-                    productModal.show();
+                    galleryModal.show();
                 }
             }
         });
     }
 
-    function saveProduct() {
-        let id = $('#productId').val();
+    function saveItem() {
+        let id = $('#itemId').val();
         let url = id ? API_URL + 'update/' + id : API_URL + 'store';
-        let formData = new FormData(document.getElementById('productForm'));
-
-        // Loading State
+        let formData = new FormData(document.getElementById('galleryForm'));
         let btn = $('#saveBtn');
-        let originalText = btn.text();
+
         btn.text('Menyimpan...').prop('disabled', true);
 
         $.ajax({
@@ -270,8 +198,8 @@
             success: function (response) {
                 if (response.status) {
                     showAlert('success', response.message);
-                    productModal.hide();
-                    table.ajax.reload(); // Reload DataTables
+                    galleryModal.hide();
+                    table.ajax.reload();
                 } else {
                     showAlert('danger', response.message || response.errors);
                 }
@@ -280,13 +208,13 @@
                 showAlert('danger', 'Terjadi kesalahan sistem.');
             },
             complete: function () {
-                btn.text(originalText).prop('disabled', false);
+                btn.text('Simpan').prop('disabled', false);
             }
         });
     }
 
-    function deleteProduct(id) {
-        if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) return;
+    function deleteItem(id) {
+        if (!confirm('Hapus foto ini dari galeri?')) return;
 
         $.ajax({
             url: API_URL + 'delete/' + id,
@@ -295,7 +223,7 @@
             success: function (response) {
                 if (response.status) {
                     showAlert('success', response.message);
-                    table.ajax.reload(); // Reload DataTables
+                    table.ajax.reload();
                 } else {
                     showAlert('danger', response.message);
                 }
@@ -311,27 +239,6 @@
             </div>
         `;
         $('#alert-container').html(html);
-
-        setTimeout(() => {
-            $('.alert').alert('close');
-        }, 3000);
-    }
-
-    function toggleNewArrival(id) {
-        $.ajax({
-            url: API_URL + 'toggle_new_arrival/' + id,
-            type: 'POST',
-            dataType: 'json',
-            success: function (response) {
-                if (response.status) {
-                    table.ajax.reload(null, false);
-                } else {
-                    showAlert('danger', 'Gagal mengupdate status: ' + response.message);
-                }
-            },
-            error: function () {
-                showAlert('danger', 'Terjadi kesalahan server');
-            }
-        });
+        setTimeout(() => $('.alert').alert('close'), 3000);
     }
 </script>

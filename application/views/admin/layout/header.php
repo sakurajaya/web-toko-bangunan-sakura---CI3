@@ -82,6 +82,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?= ($this->uri->segment(2) == 'gallery') ? 'active' : '' ?>"
+                                href="<?= base_url('admin/gallery') ?>">
+                                <i class="fas fa-images me-2"></i>
+                                Galeri
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="<?= base_url() ?>" target="_blank">
                                 <i class="fas fa-external-link-alt me-2"></i>
                                 Lihat Website
