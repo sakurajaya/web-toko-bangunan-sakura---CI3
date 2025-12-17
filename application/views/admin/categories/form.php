@@ -19,6 +19,11 @@
                             value="<?= isset($category) ? $category->name : '' ?>" required>
                     </div>
                     <div class="mb-3">
+                        <label for="order_num" class="form-label">Urutan</label>
+                        <input type="number" class="form-control" id="order_num" name="order_num"
+                            value="<?= isset($category) ? $category->order_num : '0' ?>">
+                    </div>
+                    <div class="mb-3">
                         <label for="description" class="form-label">Deskripsi</label>
                         <textarea class="form-control" id="description" name="description"
                             rows="3"><?= isset($category) ? $category->description : '' ?></textarea>

@@ -17,6 +17,7 @@ class Home extends CI_Controller
 
         // Attempt to fetch data from database if tables exist
         if ($this->db->table_exists('categories')) {
+            $this->db->order_by('order_num', 'ASC');
             $data['categories'] = $this->db->get('categories')->result();
         } else {
             $data['categories'] = [];
@@ -39,5 +40,31 @@ class Home extends CI_Controller
         $this->load->view('layout/header');
         $this->load->view('home/index', $data);
         $this->load->view('layout/footer');
+    }
+
+    public function send_message()
+    {
+        // Simple validation
+        $name = $this->input->post('name');
+        $email = $this->input->post('email');
+        $message = $this->input->post('message');
+
+        if (!empty($name) && !empty($message)) {
+            $data = [
+                'name' => $name,
+                'email' => $email,
+                'message' => $message
+            ];
+
+            if ($this->db->insert('messages', $data)) {
+                $this->session->set_flashdata('success', 'Pesan Anda berhasil dikirim! Kami akan segera menghubungi Anda.');
+            } else {
+                $this->session->set_flashdata('error', 'Maaf, terjadi kesalahan saat mengirim pesan.');
+            }
+        } else {
+            $this->session->set_flashdata('error', 'Nama dan Pesan wajib diisi.');
+        }
+
+        redirect('home#contact');
     }
 }

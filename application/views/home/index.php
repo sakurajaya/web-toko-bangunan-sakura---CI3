@@ -207,35 +207,74 @@
             <div class="section-title-line"></div>
         </div>
 
-        <div class="row g-3">
-            <?php if (!empty($gallery)): ?>
-                <?php foreach ($gallery as $item): ?>
-                    <div class="col-md-3 col-6">
-                        <a href="<?= base_url($item->image) ?>" data-fancybox="gallery" data-caption="<?= $item->title ?>">
-                            <div class="position-relative overflow-hidden rounded shadow-sm group-hover-zoom"
-                                style="height: 250px;">
-                                <img src="<?= base_url($item->image) ?>" alt="<?= $item->title ?>"
-                                    class="w-100 h-100 object-fit-cover">
-                                <div
-                                    class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-75 opacity-0 hover-opacity-100 transition-opacity">
-                                    <span class="fw-bold text-dark"><?= $item->title ?></span>
+        <?php if (!empty($gallery)): ?>
+            <?php
+            // Duplicate items if distinct count is less than 6 to ensure smooth infinite loop
+            $display_gallery = $gallery;
+            if (count($gallery) < 6) {
+                while (count($display_gallery) < 6) {
+                    $display_gallery = array_merge($display_gallery, $gallery);
+                }
+            }
+            ?>
+            <div class="swiper gallerySwiper py-4">
+                <div class="swiper-wrapper">
+                    <?php foreach ($display_gallery as $item): ?>
+                        <div class="swiper-slide">
+                            <a href="<?= base_url($item->image) ?>" data-fancybox="gallery" data-caption="<?= $item->title ?>">
+                                <div class="position-relative overflow-hidden rounded shadow-sm group-hover-zoom"
+                                    style="height: 300px;">
+                                    <img src="<?= base_url($item->image) ?>" alt="<?= $item->title ?>"
+                                        class="w-100 h-100 object-fit-cover">
+                                    <div
+                                        class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-warning bg-opacity-75 opacity-0 hover-opacity-100 transition-opacity">
+                                        <span class="fw-bold text-dark fs-5"><?= $item->title ?></span>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="swiper-pagination mt-4"></div>
+            </div>
+        <?php else: ?>
+            <div class="row">
                 <div class="col-12 text-center text-muted">
                     <p>Belum ada foto galeri.</p>
                 </div>
-            <?php endif; ?>
-        </div>
-        
+            </div>
+        <?php endif; ?>
+
         <!-- Fancybox Init -->
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 Fancybox.bind("[data-fancybox]", {
                     // Custom options
+                });
+
+                const gallerySwiper = new Swiper(".gallerySwiper", {
+                    effect: "coverflow",
+                    grabCursor: true,
+                    centeredSlides: true,
+                    slidesPerView: "auto",
+                    coverflowEffect: {
+                        rotate: 50,
+                        stretch: 0,
+                        depth: 100,
+                        modifier: 1,
+                        slideShadows: true,
+                    },
+                    loop: true,
+                    autoplay: {
+                        delay: 2500,
+                        disableOnInteraction: false,
+                    },
+                    observer: true,
+                    observeParents: true,
+                    pagination: {
+                        el: ".swiper-pagination",
+                        clickable: true,
+                    },
                 });
             });
         </script>
@@ -249,6 +288,23 @@
 
             .transition-opacity {
                 transition: opacity 0.3s ease;
+            }
+
+            .gallerySwiper .swiper-slide {
+                background-position: center;
+                background-size: cover;
+                width: 300px;
+                height: 300px;
+            }
+
+            .gallerySwiper .swiper-slide img {
+                display: block;
+                width: 100%;
+            }
+
+            /* Fix placeholder visibility for dark inputs */
+            .form-control.bg-dark::placeholder {
+                color: rgba(255, 255, 255, 0.6) !important;
             }
         </style>
     </div>
@@ -309,18 +365,28 @@
 
             <div class="col-lg-7">
                 <div class="bg-secondary bg-opacity-25 p-5 rounded-3">
-                    <form>
+                    <?php if ($this->session->flashdata('success')): ?>
+                        <div class="alert alert-success mb-3">
+                            <?= $this->session->flashdata('success') ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($this->session->flashdata('error')): ?>
+                        <div class="alert alert-danger mb-3">
+                            <?= $this->session->flashdata('error') ?>
+                        </div>
+                    <?php endif; ?>
+                    <form action="<?= base_url('home/send_message') ?>" method="post">
                         <div class="mb-3">
                             <input type="text" class="form-control bg-dark border-secondary text-white p-3"
-                                placeholder="Nama Anda" required>
+                                placeholder="Nama Anda" name="name" required>
                         </div>
                         <div class="mb-3">
                             <input type="email" class="form-control bg-dark border-secondary text-white p-3"
-                                placeholder="Email Anda">
+                                placeholder="Email Anda" name="email">
                         </div>
                         <div class="mb-3">
                             <textarea class="form-control bg-dark border-secondary text-white p-3" rows="5"
-                                placeholder="Pesan Anda" required></textarea>
+                                placeholder="Pesan Anda" name="message" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary-custom w-100 py-3">Kirim Pesan</button>
                     </form>

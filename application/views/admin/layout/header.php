@@ -89,9 +89,22 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?= ($this->uri->segment(2) == 'messages') ? 'active' : '' ?>"
+                                href="<?= base_url('admin/messages') ?>">
+                                <i class="fas fa-envelope me-2"></i>
+                                Pesan
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="<?= base_url() ?>" target="_blank">
                                 <i class="fas fa-external-link-alt me-2"></i>
                                 Lihat Website
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="<?= base_url('auth/logout') ?>">
+                                <i class="fas fa-sign-out-alt me-2"></i>
+                                Logout
                             </a>
                         </li>
                     </ul>

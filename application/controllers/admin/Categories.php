@@ -23,6 +23,7 @@ class Categories extends CI_Controller
         // Get all categories
         $data['categories'] = [];
         if ($this->db->table_exists('categories')) {
+            $this->db->order_by('order_num', 'ASC');
             $data['categories'] = $this->db->get('categories')->result();
         }
 
@@ -65,6 +66,7 @@ class Categories extends CI_Controller
 
             $data = [
                 'name' => $this->input->post('name'),
+                'order_num' => $this->input->post('order_num'),
                 'description' => $this->input->post('description'),
                 'image' => $image_path ? $image_path : 'assets/categories/default.jpg'
             ];
@@ -100,6 +102,7 @@ class Categories extends CI_Controller
 
             $data = [
                 'name' => $this->input->post('name'),
+                'order_num' => $this->input->post('order_num'),
                 'description' => $this->input->post('description'),
                 'image' => $image_path
             ];

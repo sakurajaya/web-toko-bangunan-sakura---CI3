@@ -310,6 +310,14 @@ switch (ENVIRONMENT)
  * LOAD THE BOOTSTRAP FILE
  * --------------------------------------------------------------------
  *
- * And away we go...
+ * @see https://codeigniter.com/user_guide/general/urls.html
  */
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// Load custom Env Loader to avoid composer dependency issues
+require_once APPPATH . 'libraries/Env_loader.php';
+$env_loader = new Env_loader();
+$env_loader->load();
+
 require_once BASEPATH.'core/CodeIgniter.php';

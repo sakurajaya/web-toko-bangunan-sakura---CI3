@@ -18,6 +18,7 @@
         <thead>
             <tr>
                 <th scope="col">#</th>
+                <th scope="col">Urutan</th>
                 <th scope="col">Nama</th>
                 <th scope="col">Deskripsi</th>
                 <th scope="col">Gambar (Path)</th>
@@ -28,7 +29,7 @@
             <?php if (!empty($categories)): ?>
                 <?php foreach ($categories as $index => $cat): ?>
                     <tr>
-                        <td><?= $index + 1 ?></td>
+                        <td><?= $cat->order_num ?></td>
                         <td><?= $cat->name ?></td>
                         <td><?= character_limiter($cat->description, 50) ?></td>
                         <td><small class="text-muted"><?= $cat->image ?></small></td>

@@ -52,18 +52,29 @@
             <?php endif; ?>
 
             <form action="<?= base_url('auth/login') ?>" method="post">
-                <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" 所需 required autofocus>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <div class="d-grid mt-4">
-                    <button type="submit" class="btn btn-primary-custom btn-lg">Masuk</button>
-                </div>
-            </form>
+    <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required autofocus>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+    </div>
+
+    <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-primary-custom btn-lg">Masuk</button>
+    </div>
+
+    <!-- Google Login -->
+    <div class="d-grid mt-3">
+        <a href="<?= base_url('Oath2') ?>" 
+           class="btn btn-outline-danger btn-lg d-flex align-items-center justify-content-center gap-2">
+            <img src="https://developers.google.com/identity/images/g-logo.png" width="18">
+            Masuk dengan Google
+        </a>
+    </div>
+</form>
+
             <div class="text-center mt-3">
                 <a href="<?= base_url() ?>" class="text-decoration-none text-muted small">&larr; Kembali ke Beranda</a>
             </div>
